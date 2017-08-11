@@ -1,61 +1,67 @@
 package raft
 
+import "sync"
+
 //
 // support for Raft and kvraft to save persistent
 // Raft state (log &c) and k/v server snapshots.
 //
-// we will use the original persister.go to test your code for grading.
-// so, while you can modify this code to help you debug, please
-// test with the original before submitting.
-//
+type Persister interface {
+	Copy() (Persister, error)
+	SaveRaftState(data []byte) error
+	ReadRaftState() ([]byte, error)
+	RaftStateSize() int
+	SaveSnapshot(snapshot []byte) error
+	ReadSnapshot() ([]byte, error)
+}
 
-import "sync"
-
-type Persister struct {
+type simplePersisterImpl struct {
 	mu        sync.Mutex
 	raftstate []byte
 	snapshot  []byte
 }
 
-func MakePersister() *Persister {
-	return &Persister{}
+func NewSimplePersister() Persister {
+	return &simplePersisterImpl{}
 }
 
-func (ps *Persister) Copy() *Persister {
+func (ps *simplePersisterImpl) Copy() (Persister, error) {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
-	np := MakePersister()
+	np := &simplePersisterImpl{}
 	np.raftstate = ps.raftstate
 	np.snapshot = ps.snapshot
-	return np
+	return np, nil
 }
 
-func (ps *Persister) SaveRaftState(data []byte) {
+func (ps *simplePersisterImpl) SaveRaftState(data []byte) error {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
 	ps.raftstate = data
+	return nil
 }
 
-func (ps *Persister) ReadRaftState() []byte {
+func (ps *simplePersisterImpl) ReadRaftState() ([]byte, error) {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
-	return ps.raftstate
+	return ps.raftstate, nil
 }
 
-func (ps *Persister) RaftStateSize() int {
+func (ps *simplePersisterImpl) RaftStateSize() int {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
 	return len(ps.raftstate)
 }
 
-func (ps *Persister) SaveSnapshot(snapshot []byte) {
+func (ps *simplePersisterImpl) SaveSnapshot(snapshot []byte) error {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
 	ps.snapshot = snapshot
+	return nil
 }
 
-func (ps *Persister) ReadSnapshot() []byte {
+func (ps *simplePersisterImpl) ReadSnapshot() ([]byte, error) {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
-	return ps.snapshot
+	return ps.snapshot, nil
 }
