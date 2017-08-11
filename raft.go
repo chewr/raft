@@ -35,6 +35,13 @@ type ApplyMsg struct {
 	Snapshot    []byte // ignore for lab2; only used in lab3
 }
 
+type RaftNode interface {
+	Start(command interface{}) (int, int, bool)
+	Kill()
+	GetState() (int, bool)
+	RequestVote(args RequestVoteArgs, reply *RequestVoteReply)
+}
+
 //
 // A Go object implementing a single Raft peer.
 //
@@ -174,7 +181,7 @@ func (rf *Raft) Kill() {
 // for any long-running work.
 //
 func Make(peers []*labrpc.ClientEnd, me int,
-	persister Persister, applyCh chan ApplyMsg) *Raft {
+	persister Persister, applyCh chan ApplyMsg) RaftNode {
 	rf := &Raft{}
 	rf.peers = peers
 	rf.persister = persister
