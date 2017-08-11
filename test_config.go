@@ -32,7 +32,7 @@ type config struct {
 	net       *labrpc.Network
 	n         int
 	done      int32 // tell internal threads to die
-	rafts     []*Raft
+	rafts     []RaftNode
 	applyErr  []string // from apply channel readers
 	connected []bool   // whether each server is on the net
 	saved     []Persister
@@ -47,7 +47,7 @@ func make_config(t *testing.T, n int, unreliable bool) *config {
 	cfg.net = labrpc.MakeNetwork()
 	cfg.n = n
 	cfg.applyErr = make([]string, cfg.n)
-	cfg.rafts = make([]*Raft, cfg.n)
+	cfg.rafts = make([]RaftNode, cfg.n)
 	cfg.connected = make([]bool, cfg.n)
 	cfg.saved = make([]Persister, cfg.n)
 	cfg.endnames = make([][]string, cfg.n)
@@ -387,7 +387,7 @@ func (cfg *config) one(cmd int, expectedServers int) int {
 		index := -1
 		for si := 0; si < cfg.n; si++ {
 			starts = (starts + 1) % cfg.n
-			var rf *Raft
+			var rf RaftNode
 			cfg.mu.Lock()
 			if cfg.connected[starts] {
 				rf = cfg.rafts[starts]
