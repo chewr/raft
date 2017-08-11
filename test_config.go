@@ -35,7 +35,7 @@ type config struct {
 	rafts     []*Raft
 	applyErr  []string // from apply channel readers
 	connected []bool   // whether each server is on the net
-	saved     []*Persister
+	saved     []Persister
 	endnames  [][]string    // the port file names each sends to
 	logs      []map[int]int // copy of each server's committed entries
 }
@@ -49,7 +49,7 @@ func make_config(t *testing.T, n int, unreliable bool) *config {
 	cfg.applyErr = make([]string, cfg.n)
 	cfg.rafts = make([]*Raft, cfg.n)
 	cfg.connected = make([]bool, cfg.n)
-	cfg.saved = make([]*Persister, cfg.n)
+	cfg.saved = make([]Persister, cfg.n)
 	cfg.endnames = make([][]string, cfg.n)
 	cfg.logs = make([]map[int]int, cfg.n)
 
@@ -84,7 +84,7 @@ func (cfg *config) crash1(i int) {
 	// but copy old persister's content so that we always
 	// pass Make() the last persisted state.
 	if cfg.saved[i] != nil {
-		cfg.saved[i] = cfg.saved[i].Copy()
+		cfg.saved[i], _ = cfg.saved[i].Copy()
 	}
 
 	rf := cfg.rafts[i]
@@ -96,8 +96,8 @@ func (cfg *config) crash1(i int) {
 	}
 
 	if cfg.saved[i] != nil {
-		raftlog := cfg.saved[i].ReadRaftState()
-		cfg.saved[i] = &Persister{}
+		raftlog, _ := cfg.saved[i].ReadRaftState()
+		cfg.saved[i] = &simplePersisterImpl{}
 		cfg.saved[i].SaveRaftState(raftlog)
 	}
 }
@@ -133,9 +133,9 @@ func (cfg *config) start1(i int) {
 	// but copy old persister's content so that we always
 	// pass Make() the last persisted state.
 	if cfg.saved[i] != nil {
-		cfg.saved[i] = cfg.saved[i].Copy()
+		cfg.saved[i], _ = cfg.saved[i].Copy()
 	} else {
-		cfg.saved[i] = MakePersister()
+		cfg.saved[i] = NewSimplePersister()
 	}
 
 	cfg.mu.Unlock()

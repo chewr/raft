@@ -41,7 +41,7 @@ type ApplyMsg struct {
 type Raft struct {
 	mu        sync.Mutex
 	peers     []*labrpc.ClientEnd
-	persister *Persister
+	persister Persister
 	me        int // index into peers[]
 
 	// Your data here.
@@ -174,7 +174,7 @@ func (rf *Raft) Kill() {
 // for any long-running work.
 //
 func Make(peers []*labrpc.ClientEnd, me int,
-	persister *Persister, applyCh chan ApplyMsg) *Raft {
+	persister Persister, applyCh chan ApplyMsg) *Raft {
 	rf := &Raft{}
 	rf.peers = peers
 	rf.persister = persister
@@ -183,7 +183,8 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	// Your initialization code here.
 
 	// initialize from state persisted before a crash
-	rf.readPersist(persister.ReadRaftState())
+	state, _ := persister.ReadRaftState()
+	rf.readPersist(state)
 
 	return rf
 }
