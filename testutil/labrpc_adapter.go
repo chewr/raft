@@ -1,21 +1,14 @@
-package raft
+package testutil
 
 import "fmt"
 import "github.com/chewr/6.824-2016/labrpc"
-
-type Endpoint interface {
-	Call(request interface{}) (interface{}, error)
-}
-
-type Client interface {
-	Call(serviceMethod string, args interface{}, reply interface{}) error
-}
+import "github.com/chewr/raft/connection"
 
 type labrpcAdapter struct {
 	e *labrpc.ClientEnd
 }
 
-func NewLabRpcAdapter(e *labrpc.ClientEnd) Client {
+func NewLabRpcAdapter(e *labrpc.ClientEnd) connection.Client {
 	return &labrpcAdapter{
 		e: e,
 	}

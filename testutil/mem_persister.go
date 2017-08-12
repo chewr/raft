@@ -1,31 +1,22 @@
-package raft
+package testutil
 
 import "sync"
+import "github.com/chewr/raft/persistance"
 
 //
-// support for Raft and kvraft to save persistent
-// Raft state (log &c) and k/v server snapshots.
-//
-type Persister interface {
-	Copy() (Persister, error)
-	SaveRaftState(data []byte) error
-	ReadRaftState() ([]byte, error)
-	RaftStateSize() int
-	SaveSnapshot(snapshot []byte) error
-	ReadSnapshot() ([]byte, error)
-}
-
+// implementation of a simple in-memory persister
+// suitable for testing only
 type simplePersisterImpl struct {
 	mu        sync.Mutex
 	raftstate []byte
 	snapshot  []byte
 }
 
-func NewSimplePersister() Persister {
+func NewSimplePersister() *simplePersisterImpl {
 	return &simplePersisterImpl{}
 }
 
-func (ps *simplePersisterImpl) Copy() (Persister, error) {
+func (ps *simplePersisterImpl) Copy() (persistance.Persister, error) {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
 	np := &simplePersisterImpl{}

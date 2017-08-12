@@ -1,4 +1,4 @@
-package raft_test
+package ete
 
 //
 // support for Raft tester.
@@ -18,7 +18,10 @@ import "encoding/base64"
 import "sync/atomic"
 import "time"
 import "fmt"
-import "github.com/chewr/raft"
+import "github.com/chewr/raft/raft"
+import "github.com/chewr/raft/testutil"
+import "github.com/chewr/raft/persistance"
+import "github.com/chewr/raft/connection"
 
 func randstring(n int) string {
 	b := make([]byte, 2*n)
@@ -36,7 +39,7 @@ type config struct {
 	rafts     []raft.RaftNode
 	applyErr  []string // from apply channel readers
 	connected []bool   // whether each server is on the net
-	saved     []raft.Persister
+	saved     []persistance.Persister
 	endnames  [][]string    // the port file names each sends to
 	logs      []map[int]int // copy of each server's committed entries
 }
@@ -50,7 +53,7 @@ func make_config(t *testing.T, n int, unreliable bool) *config {
 	cfg.applyErr = make([]string, cfg.n)
 	cfg.rafts = make([]raft.RaftNode, cfg.n)
 	cfg.connected = make([]bool, cfg.n)
-	cfg.saved = make([]raft.Persister, cfg.n)
+	cfg.saved = make([]persistance.Persister, cfg.n)
 	cfg.endnames = make([][]string, cfg.n)
 	cfg.logs = make([]map[int]int, cfg.n)
 
@@ -98,7 +101,7 @@ func (cfg *config) crash1(i int) {
 
 	if cfg.saved[i] != nil {
 		raftlog, _ := cfg.saved[i].ReadRaftState()
-		cfg.saved[i] = raft.NewSimplePersister()
+		cfg.saved[i] = testutil.NewSimplePersister()
 		cfg.saved[i].SaveRaftState(raftlog)
 	}
 }
@@ -136,7 +139,7 @@ func (cfg *config) start1(i int) {
 	if cfg.saved[i] != nil {
 		cfg.saved[i], _ = cfg.saved[i].Copy()
 	} else {
-		cfg.saved[i] = raft.NewSimplePersister()
+		cfg.saved[i] = testutil.NewSimplePersister()
 	}
 
 	cfg.mu.Unlock()
@@ -178,9 +181,9 @@ func (cfg *config) start1(i int) {
 	}()
 
 	// Create raft Clients from the labrpc *ClientEnds
-	raftClients := make([]raft.Client, len(ends))
+	raftClients := make([]connection.Client, len(ends))
 	for i := range ends {
-		raftClients[i] = raft.NewLabRpcAdapter(ends[i])
+		raftClients[i] = testutil.NewLabRpcAdapter(ends[i])
 	}
 	rf := raft.Make(raftClients, i, cfg.saved[i], applyCh)
 
