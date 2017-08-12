@@ -1,4 +1,4 @@
-package raft
+package raft_test
 
 //
 // support for Raft tester.
@@ -18,6 +18,7 @@ import "encoding/base64"
 import "sync/atomic"
 import "time"
 import "fmt"
+import "github.com/chewr/raft"
 
 func randstring(n int) string {
 	b := make([]byte, 2*n)
@@ -32,10 +33,10 @@ type config struct {
 	net       *labrpc.Network
 	n         int
 	done      int32 // tell internal threads to die
-	rafts     []RaftNode
+	rafts     []raft.RaftNode
 	applyErr  []string // from apply channel readers
 	connected []bool   // whether each server is on the net
-	saved     []Persister
+	saved     []raft.Persister
 	endnames  [][]string    // the port file names each sends to
 	logs      []map[int]int // copy of each server's committed entries
 }
@@ -47,9 +48,9 @@ func make_config(t *testing.T, n int, unreliable bool) *config {
 	cfg.net = labrpc.MakeNetwork()
 	cfg.n = n
 	cfg.applyErr = make([]string, cfg.n)
-	cfg.rafts = make([]RaftNode, cfg.n)
+	cfg.rafts = make([]raft.RaftNode, cfg.n)
 	cfg.connected = make([]bool, cfg.n)
-	cfg.saved = make([]Persister, cfg.n)
+	cfg.saved = make([]raft.Persister, cfg.n)
 	cfg.endnames = make([][]string, cfg.n)
 	cfg.logs = make([]map[int]int, cfg.n)
 
@@ -97,7 +98,7 @@ func (cfg *config) crash1(i int) {
 
 	if cfg.saved[i] != nil {
 		raftlog, _ := cfg.saved[i].ReadRaftState()
-		cfg.saved[i] = &simplePersisterImpl{}
+		cfg.saved[i] = raft.NewSimplePersister()
 		cfg.saved[i].SaveRaftState(raftlog)
 	}
 }
@@ -135,13 +136,13 @@ func (cfg *config) start1(i int) {
 	if cfg.saved[i] != nil {
 		cfg.saved[i], _ = cfg.saved[i].Copy()
 	} else {
-		cfg.saved[i] = NewSimplePersister()
+		cfg.saved[i] = raft.NewSimplePersister()
 	}
 
 	cfg.mu.Unlock()
 
 	// listen to messages from Raft indicating newly committed messages.
-	applyCh := make(chan ApplyMsg)
+	applyCh := make(chan raft.ApplyMsg)
 	go func() {
 		for m := range applyCh {
 			err_msg := ""
@@ -176,7 +177,7 @@ func (cfg *config) start1(i int) {
 		}
 	}()
 
-	rf := Make(ends, i, cfg.saved[i], applyCh)
+	rf := raft.Make(ends, i, cfg.saved[i], applyCh)
 
 	cfg.mu.Lock()
 	cfg.rafts[i] = rf
@@ -387,7 +388,7 @@ func (cfg *config) one(cmd int, expectedServers int) int {
 		index := -1
 		for si := 0; si < cfg.n; si++ {
 			starts = (starts + 1) % cfg.n
-			var rf RaftNode
+			var rf raft.RaftNode
 			cfg.mu.Lock()
 			if cfg.connected[starts] {
 				rf = cfg.rafts[starts]
