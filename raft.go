@@ -18,7 +18,6 @@ package raft
 //
 
 import "sync"
-import "github.com/chewr/6.824-2016/labrpc"
 
 // import "bytes"
 // import "encoding/gob"
@@ -47,7 +46,7 @@ type RaftNode interface {
 //
 type Raft struct {
 	mu        sync.Mutex
-	peers     []*labrpc.ClientEnd
+	peers     []Client
 	persister Persister
 	me        int // index into peers[]
 
@@ -134,8 +133,7 @@ func (rf *Raft) RequestVote(args RequestVoteArgs, reply *RequestVoteReply) {
 // the struct itself.
 //
 func (rf *Raft) sendRequestVote(server int, args RequestVoteArgs, reply *RequestVoteReply) bool {
-	ok := rf.peers[server].Call("Raft.RequestVote", args, reply)
-	return ok
+	return false
 }
 
 //
@@ -180,7 +178,7 @@ func (rf *Raft) Kill() {
 // Make() must return quickly, so it should start goroutines
 // for any long-running work.
 //
-func Make(peers []*labrpc.ClientEnd, me int,
+func Make(peers []Client, me int,
 	persister Persister, applyCh chan ApplyMsg) RaftNode {
 	rf := &Raft{}
 	rf.peers = peers
