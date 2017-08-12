@@ -1,7 +1,7 @@
 package testutil
 
 import "sync"
-import "github.com/chewr/raft"
+import "github.com/chewr/raft/persistance"
 
 //
 // implementation of a simple in-memory persister
@@ -16,7 +16,7 @@ func NewSimplePersister() *simplePersisterImpl {
 	return &simplePersisterImpl{}
 }
 
-func (ps *simplePersisterImpl) Copy() (raft.Persister, error) {
+func (ps *simplePersisterImpl) Copy() (persistance.Persister, error) {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
 	np := &simplePersisterImpl{}

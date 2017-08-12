@@ -18,6 +18,7 @@ package raft
 //
 
 import "sync"
+import "github.com/chewr/raft/persistance"
 
 // import "bytes"
 // import "encoding/gob"
@@ -47,7 +48,7 @@ type RaftNode interface {
 type Raft struct {
 	mu        sync.Mutex
 	peers     []Client
-	persister Persister
+	persister persistance.Persister
 	me        int // index into peers[]
 
 	// Your data here.
@@ -179,7 +180,7 @@ func (rf *Raft) Kill() {
 // for any long-running work.
 //
 func Make(peers []Client, me int,
-	persister Persister, applyCh chan ApplyMsg) RaftNode {
+	persister persistance.Persister, applyCh chan ApplyMsg) RaftNode {
 	rf := &Raft{}
 	rf.peers = peers
 	rf.persister = persister

@@ -20,6 +20,7 @@ import "time"
 import "fmt"
 import "github.com/chewr/raft"
 import "github.com/chewr/raft/testutil"
+import "github.com/chewr/raft/persistance"
 
 func randstring(n int) string {
 	b := make([]byte, 2*n)
@@ -37,7 +38,7 @@ type config struct {
 	rafts     []raft.RaftNode
 	applyErr  []string // from apply channel readers
 	connected []bool   // whether each server is on the net
-	saved     []raft.Persister
+	saved     []persistance.Persister
 	endnames  [][]string    // the port file names each sends to
 	logs      []map[int]int // copy of each server's committed entries
 }
@@ -51,7 +52,7 @@ func make_config(t *testing.T, n int, unreliable bool) *config {
 	cfg.applyErr = make([]string, cfg.n)
 	cfg.rafts = make([]raft.RaftNode, cfg.n)
 	cfg.connected = make([]bool, cfg.n)
-	cfg.saved = make([]raft.Persister, cfg.n)
+	cfg.saved = make([]persistance.Persister, cfg.n)
 	cfg.endnames = make([][]string, cfg.n)
 	cfg.logs = make([]map[int]int, cfg.n)
 
