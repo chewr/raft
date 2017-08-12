@@ -181,7 +181,7 @@ func (cfg *config) start1(i int) {
 	// Create raft Clients from the labrpc *ClientEnds
 	raftClients := make([]raft.Client, len(ends))
 	for i := range ends {
-		raftClients[i] = raft.NewLabRpcAdapter(ends[i])
+		raftClients[i] = testutil.NewLabRpcAdapter(ends[i])
 	}
 	rf := raft.Make(raftClients, i, cfg.saved[i], applyCh)
 
