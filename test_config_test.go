@@ -177,7 +177,12 @@ func (cfg *config) start1(i int) {
 		}
 	}()
 
-	rf := raft.Make(ends, i, cfg.saved[i], applyCh)
+	// Create raft Clients from the labrpc *ClientEnds
+	raftClients := make([]raft.Client, len(ends))
+	for i := range ends {
+		raftClients[i] = raft.NewLabRpcAdapter(ends[i])
+	}
+	rf := raft.Make(raftClients, i, cfg.saved[i], applyCh)
 
 	cfg.mu.Lock()
 	cfg.rafts[i] = rf
