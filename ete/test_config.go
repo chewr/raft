@@ -21,6 +21,7 @@ import "fmt"
 import "github.com/chewr/raft"
 import "github.com/chewr/raft/testutil"
 import "github.com/chewr/raft/persistance"
+import "github.com/chewr/raft/connection"
 
 func randstring(n int) string {
 	b := make([]byte, 2*n)
@@ -180,7 +181,7 @@ func (cfg *config) start1(i int) {
 	}()
 
 	// Create raft Clients from the labrpc *ClientEnds
-	raftClients := make([]raft.Client, len(ends))
+	raftClients := make([]connection.Client, len(ends))
 	for i := range ends {
 		raftClients[i] = testutil.NewLabRpcAdapter(ends[i])
 	}

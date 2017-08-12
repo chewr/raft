@@ -1,4 +1,4 @@
-package raft
+package connection
 
 type Endpoint interface {
 	Call(request interface{}) (interface{}, error)
