@@ -19,6 +19,7 @@ import "sync/atomic"
 import "time"
 import "fmt"
 import "github.com/chewr/raft"
+import "github.com/chewr/raft/testutil"
 
 func randstring(n int) string {
 	b := make([]byte, 2*n)
@@ -98,7 +99,7 @@ func (cfg *config) crash1(i int) {
 
 	if cfg.saved[i] != nil {
 		raftlog, _ := cfg.saved[i].ReadRaftState()
-		cfg.saved[i] = raft.NewSimplePersister()
+		cfg.saved[i] = testutil.NewSimplePersister()
 		cfg.saved[i].SaveRaftState(raftlog)
 	}
 }
@@ -136,7 +137,7 @@ func (cfg *config) start1(i int) {
 	if cfg.saved[i] != nil {
 		cfg.saved[i], _ = cfg.saved[i].Copy()
 	} else {
-		cfg.saved[i] = raft.NewSimplePersister()
+		cfg.saved[i] = testutil.NewSimplePersister()
 	}
 
 	cfg.mu.Unlock()
